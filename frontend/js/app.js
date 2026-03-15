@@ -199,7 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!selectedFile) return;
 
         const fileName = selectedFile.name;
-        const userMsg = chatInput.value.trim() || `📎 Uploaded: ${fileName}`;
+        const userText = chatInput.value.trim();
+        const userMsg = userText || `📎 Uploaded: ${fileName}`;
         
         // Show user message
         appendMessage(userMsg, 'user');
@@ -220,6 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('file', selectedFile);
+        // Send user's text as instructions for response style
+        if (userText) {
+            formData.append('instructions', userText);
+        }
 
         clearFileSelection();
 

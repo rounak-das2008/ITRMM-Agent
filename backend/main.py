@@ -71,10 +71,11 @@ def chat_endpoint(request: ChatRequest):
     return {"reply": response}
 
 @app.post("/api/assess")
-async def assess_controls(file: UploadFile = File(...)):
+async def assess_controls(file: UploadFile = File(...), instructions: str = Form("")):
     """
     Receives a CSV or Excel file, processes each question via the agent,
-    and returns a filled CSV file.
+    and returns a filled CSV file. Optionally accepts user instructions
+    to guide response style (e.g., "keep answers crisp and short").
     """
     allowed_extensions = ('.csv', '.xlsx', '.xls')
     filename_lower = file.filename.lower()
@@ -104,7 +105,7 @@ async def assess_controls(file: UploadFile = File(...)):
         output_path = input_path.replace(".csv", "_results.csv")
         
         agent = get_agent()
-        agent.process_csv(input_path, output_path)
+        agent.process_csv(input_path, output_path, user_instructions=instructions)
         
         # Clean up input
         os.remove(input_path)

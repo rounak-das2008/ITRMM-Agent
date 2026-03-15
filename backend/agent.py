@@ -57,7 +57,7 @@ class ITRMMAgent:
             print(f"Failed to load URLs with Playwright: {e}")
             self.full_context = ""
 
-    def assess_control(self, control_area: str, question: str) -> dict:
+    def assess_control(self, control_area: str, question: str, user_instructions: str = "") -> dict:
         if not self.full_context:
             print("Warning: No context available for assessment.")
             return {
@@ -69,11 +69,24 @@ class ITRMMAgent:
         context = self.full_context
         urls_str = "\n".join(self.urls)
 
+        # Build optional user instructions block
+        instructions_block = ""
+        if user_instructions:
+            instructions_block = f"""
+        USER INSTRUCTIONS (follow these carefully):
+        {user_instructions}
+        """
+
         system_prompt = f"""
-        You are the ITRMM (IT Risk Management and Mitigation) Agent for ING Bank.
-        Your task is to act as a Risk Assessor. You will be given a specific risk control question. 
-        You must evaluate ONLY the provided Wiki Documentation Context below to determine if the architecture meets the control requirement.
+        You are the application development team responding to an ITRMM (IT Risk Management and Mitigation) assessment for ING Bank.
+        You will be given a specific risk control question. You must answer it based ONLY on the provided Wiki Documentation Context below.
         
+        CRITICAL WRITING STYLE:
+        - Write ALL responses in FIRST PERSON as if YOU are the team that built and operates this application.
+        - Use phrases like "Team has implemented", "Our application uses...", "We ensure...", "Our team follows...".
+        - NEVER use third person like "The application uses..." or "The system implements...".
+        - Be authoritative and confident — you own and operate this system.
+        {instructions_block}
         Source Document URLs:
         {urls_str}
         
@@ -82,7 +95,7 @@ class ITRMMAgent:
         ----------------------------------
         
         Based on the context, provide a JSON response with three fields:
-        1. "detailed_response": A thorough explanation of whether the control is met and how.
+        1. "detailed_response": A first-person explanation of how the control is implemented.
         2. "evidence_link": The specific URL from the Source Document URLs above that provides the evidence. If the information spans multiple, list them. If no evidence is found, write "N/A".
         3. "risk_rating": Rate the residual risk as "Low", "Medium", or "High" based on the provided evidence. If the control is completely unaddressed, the risk is typically "High". If fully mitigated according to the docs, it is "Low".
         
@@ -148,7 +161,7 @@ class ITRMMAgent:
             print(f"Error during chat interaction: {e}")
             return "An error occurred while communicating with the Vertex AI LLM."
 
-    def process_csv(self, csv_path: str, output_path: str):
+    def process_csv(self, csv_path: str, output_path: str, user_instructions: str = ""):
         df = pd.read_csv(csv_path)
         
         results = []
@@ -161,7 +174,7 @@ class ITRMMAgent:
                 continue
                 
             print(f"Assessing: {area} - {question}")
-            assessment = self.assess_control(str(area), str(question))
+            assessment = self.assess_control(str(area), str(question), user_instructions=user_instructions)
             
             row_dict = row.to_dict()
             row_dict["Detailed Response"] = assessment["detailed_response"]
