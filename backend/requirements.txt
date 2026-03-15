@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+google-cloud-aiplatform
+langchain
+langchain-google-vertexai
+langchain-community
+chromadb
+pandas
+pydantic
+python-multipart
+beautifulsoup4
+aiofiles
+playwright
+beautifulsoup4
+unstructured
+openpyxl
